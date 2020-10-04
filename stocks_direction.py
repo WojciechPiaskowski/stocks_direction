@@ -15,7 +15,7 @@ pd.set_option('display.max_columns', 40)
 sns.set_style('whitegrid')
 
 
-ticker = 'MSFT'
+ticker = 'BAC'
 df = yf.Ticker(ticker).history(start='2000-12-31', end='2020-09-30', interval='5d').iloc[:, :5]
 
 df['moving_average'] = df['Close'].rolling(10).mean()
@@ -70,11 +70,14 @@ x = Dropout(0.2)(x)
 x = Dense(1, activation='sigmoid')(x)
 model = Model(i, x)
 model.compile(optimizer=Adam(lr=0.01), metrics=['accuracy'], loss='binary_crossentropy')
-r = model.fit(x=X_train, y=Y_train, epochs=50, validation_data=(X_test, Y_test))
+r = model.fit(x=X_train, y=Y_train, epochs=30, validation_data=(X_test, Y_test), shuffle=False)
 
 plt.plot(r.history['loss'], label='loss')
 plt.plot(r.history['val_loss'], label='val_loss')
 plt.legend()
 
 ## time series is not stationary leading to bad results
-## let's try first differences as input variables
+## let's try first differences as input variables .diff() ... also bad results
+## fix targets, go through steps: LSTM, SimpleRNN, GRU, different lr, momentum, droupout layers,
+## Standard scaler, normalizer, differences because data is not stationary
+
