@@ -6,7 +6,7 @@ import tensorflow.keras as tf
 import yfinance as yf
 
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense, Dropout, LSTM
+from tensorflow.keras.layers import Input, Dense, Dropout, LSTM, SimpleRNN, GRU
 from tensorflow.keras.optimizers import Adam, SGD
 
 
@@ -38,12 +38,12 @@ plt.show()
 data = np.array(df.iloc[:, 1:7])
 target = np.array(df.iloc[:, 7])
 
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, Normalizer
 scaler = StandardScaler()
 scaler.fit(data[:len(data) // 2])
 data = scaler.transform(data)
 
-T = 30
+T = 15
 D = 6
 X = []
 Y = []
@@ -63,15 +63,18 @@ Y_train = Y[:n//2]
 Y_test = Y[n//2:]
 
 i = Input(shape=(T, D))
-x = LSTM(50, return_sequences=True)(i)
-x = Dropout(0.3)(x)
-x = LSTM(20)(x)
-x = Dropout(0.3)(x)
+x = LSTM(T, return_sequences=True)(i)
+x = Dropout(0.2)(x)
+x = LSTM(T//2)(x)
+x = Dropout(0.2)(x)
 x = Dense(1, activation='sigmoid')(x)
 model = Model(i, x)
-model.compile(optimizer=SGD(lr=0.1, momentum=0.9), metrics=['accuracy'], loss='binary_crossentropy')
-r = model.fit(x=X_train, y=Y_train, epochs=200, shuffle=False, validation_data=(X_test, Y_test))
+model.compile(optimizer=Adam(lr=0.01), metrics=['accuracy'], loss='binary_crossentropy')
+r = model.fit(x=X_train, y=Y_train, epochs=50, validation_data=(X_test, Y_test))
 
 plt.plot(r.history['loss'], label='loss')
 plt.plot(r.history['val_loss'], label='val_loss')
 plt.legend()
+
+## time series is not stationary leading to bad results
+## let's try first differences as input variables
